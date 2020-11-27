@@ -1,13 +1,16 @@
-// import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { Box } from "@chakra-ui/react";
+const prisma = new PrismaClient();
 
-function Page(props) {
-  return <p>hello world</p>;
+export default function Home(props) {
+  return <Box>Hello</Box>;
 }
 
-export default Page;
-
-export const getStaticProps = () => ({
-  props: {
-    hello: "world",
-  },
-});
+export async function getStaticProps() {
+  const recordings = await prisma.recording.findMany();
+  return {
+    props: {
+      recordings,
+    }, // will be passed to the page component as props
+  };
+}
