@@ -39,7 +39,8 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
       console.log('File uploaded successfully.');
       // @ts-ignore
       res.json({ success: true, file: true, ...req.file });
-      return resolve();
+      // @ts-ignore
+      return resolve({ success: true, file: true, ...req.file });
     }),
   );
 };
