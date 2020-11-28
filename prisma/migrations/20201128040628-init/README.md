@@ -43,5 +43,3 @@ migration ..20201128040628-init
 +  createdAt DateTime @default(now())
 +}
 ```
-
-
