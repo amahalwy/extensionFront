@@ -1,15 +1,15 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from 'next';
 
-import aws from "aws-sdk";
-import multer from "multer";
-import multerS3 from "multer-s3";
+import aws from 'aws-sdk';
+import multer from 'multer';
+import multerS3 from 'multer-s3';
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID_MYAPP,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_MYAPP,
 });
 
-const spacesEndpoint = new aws.Endpoint("nyc3.digitaloceanspaces.com");
+const spacesEndpoint = new aws.Endpoint('nyc3.digitaloceanspaces.com');
 const s3 = new aws.S3({
   endpoint: spacesEndpoint,
 });
@@ -17,13 +17,13 @@ const s3 = new aws.S3({
 const upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: "codecapture",
-    acl: "public-read",
+    bucket: 'codecapture',
+    acl: 'public-read',
     key: function (request, file, cb) {
       cb(null, file.originalname);
     },
   }),
-}).single("file");
+}).single('file');
 
 export const config = {
   api: {
@@ -41,11 +41,11 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
         return reject();
       }
 
-      console.log("File uploaded successfully.");
+      console.log('File uploaded successfully.');
       // @ts-ignore
       res.json({ success: true, file: true, ...req.file });
       // @ts-ignore
       return resolve({ success: true, file: true, ...req.file });
-    })
+    }),
   );
 };
