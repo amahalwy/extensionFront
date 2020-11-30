@@ -1,7 +1,19 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import React from "react";
 import { PrismaClient } from "@prisma/client";
-import { Box, Flex, Heading, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Stack,
+  Text,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
+} from "@chakra-ui/react";
+import ReactPlayer from "react-player";
 
 const prisma = new PrismaClient();
 
@@ -21,164 +33,69 @@ export const getServerSideProps = async ({ params }) => {
 };
 
 export default function Recording(props) {
-  const [events, setEvents] = React.useState(
-    JSON.parse(props.recording.events)
-  );
-  const [first, setFirst] = React.useState(events[0]);
-  console.log(events[0]);
+  const [recording, setRecording] = React.useState(props.recording);
+  console.log(recording);
 
   return (
-    <Stack direction={["row"]} spacing="40px" m="2% auto">
-      <Box bg="white" p={5} shadow="md" borderWidth="1px">
-        <Box mb="24px">
-          <Heading>Details</Heading>
-          <Flex ml="4px">
-            <Text color="rgb(255, 0, 0)" mr="20px">
-              Error
-            </Text>
-            <Text color="rgb(39, 196, 39)">No error</Text>
-          </Flex>
+    <Box h="100%">
+      <Box bg="white" p={5} shadow="md" borderWidth="1px" m="1%">
+        <Heading m="2%">
+          Recording for:{" "}
+          <Text fontSize="24px" fontStyle="italic" color="rgb(60, 100, 255)">
+            {recording.screenUrl}
+          </Text>
+        </Heading>
+      </Box>
+
+      <Stack direction={["row"]} m="2% auto">
+        <Box
+          bg="white"
+          p={5}
+          shadow="md"
+          borderWidth="1px"
+          m="0 1%"
+          w={["100%"]}
+          h="100%"
+        >
+          <ReactPlayer
+            url={recording.screenUrl}
+            controls={true}
+            width="100%"
+            height="100%"
+          />
         </Box>
-        <Box m="5px">
-          <Flex mb="5px">
-            <Text mr="5px" fontWeight="bold">
-              Request:
-            </Text>
-            <Text textDecor="italic">
-              <i>{events[0]["args"][0]}</i>
-            </Text>
-          </Flex>
-          <Flex>
-            <Text mr="5px" fontWeight="bold">
-              Started at:
-            </Text>
-            <Text textDecor="italic">
-              <i>{new Date(events[0]["startTimestamp"]).toString()}</i>
-            </Text>
-          </Flex>
-        </Box>
-        <Flex>
-          <Box w="60%" ml="5px">
-            <Text fontSize="14px">Event</Text>
-            {events.map((ev) => {
-              let color = "";
-              if (!ev["level"]) {
-                return "";
-              } else {
-                if (ev["level"] === "log") {
-                  color = "rgb(39, 196, 39)";
-                }
-                if (ev["level"] === "error") {
-                  color = "rgb(255, 0, 0)";
-                }
-              }
+
+        <Box
+          bg="white"
+          p={5}
+          shadow="md"
+          borderWidth="1px"
+          m="2% auto"
+          h="673px"
+          w={["100%", "40%"]}
+          overflowY="scroll"
+        >
+          <Heading mb="2%">Timeline</Heading>
+          <Accordion allowToggle>
+            {recording.events.map((ev) => {
               return (
-                <Text key={ev.id} color={color}>
-                  {ev["args"][0]}
-                </Text>
+                <AccordionItem>
+                  <AccordionButton>
+                    <Box flex="1" textAlign="left">
+                      Message: <i>{ev.level}</i>
+                    </Box>
+                    <Box textAlign="right">{ev.time}</Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+                  <AccordionPanel pb={4}>
+                    Details of each event line
+                  </AccordionPanel>
+                </AccordionItem>
               );
             })}
-          </Box>
-          <Box w="40%">
-            <Text fontSize="14px">Event</Text>
-            {events.map((ev) => {
-              if (ev["time"]) {
-                return (
-                  <Text key={ev.id}>
-                    {Number(
-                      (ev["time"] - first["startTimestamp"]) / 1000
-                    ).toFixed(2)}{" "}
-                    seconds ago
-                  </Text>
-                );
-              } else if (ev["startTimestamp"]) {
-                return "";
-              } else {
-                return (
-                  <Box>
-                    <Text>n/a</Text>
-                  </Box>
-                );
-              }
-            })}
-          </Box>
-        </Flex>
-      </Box>
-      <Box bg="white" p={5} shadow="md" borderWidth="1px">
-        <Box mb="24px">
-          <Heading>Details</Heading>
-          <Flex ml="4px">
-            <Text color="rgb(255, 0, 0)" mr="20px">
-              Error
-            </Text>
-            <Text color="rgb(39, 196, 39)">No error</Text>
-          </Flex>
+          </Accordion>
         </Box>
-        <Box m="5px">
-          <Flex mb="5px">
-            <Text mr="5px" fontWeight="bold">
-              Request:
-            </Text>
-            <Text textDecor="italic">
-              <i>{events[0]["args"][0]}</i>
-            </Text>
-          </Flex>
-          <Flex>
-            <Text mr="5px" fontWeight="bold">
-              Started at:
-            </Text>
-            <Text textDecor="italic">
-              <i>{new Date(events[0]["startTimestamp"]).toString()}</i>
-            </Text>
-          </Flex>
-        </Box>
-        <Flex>
-          <Box w="60%" ml="5px">
-            <Text fontSize="14px">Event</Text>
-            {events.map((ev) => {
-              let color = "";
-              if (!ev["level"]) {
-                return "";
-              } else {
-                if (ev["level"] === "log") {
-                  color = "rgb(39, 196, 39)";
-                }
-                if (ev["level"] === "error") {
-                  color = "rgb(255, 0, 0)";
-                }
-              }
-              return (
-                <Text key={ev.id} color={color}>
-                  {ev["args"][0]}
-                </Text>
-              );
-            })}
-          </Box>
-          <Box w="40%">
-            <Text fontSize="14px">Event</Text>
-            {events.map((ev) => {
-              if (ev["time"]) {
-                return (
-                  <Text key={ev.id}>
-                    {Number(
-                      (ev["time"] - first["startTimestamp"]) / 1000
-                    ).toFixed(2)}{" "}
-                    seconds ago
-                  </Text>
-                );
-              } else if (ev["startTimestamp"]) {
-                return "";
-              } else {
-                return (
-                  <Box>
-                    <Text>n/a</Text>
-                  </Box>
-                );
-              }
-            })}
-          </Box>
-        </Flex>
-      </Box>
-    </Stack>
+      </Stack>
+    </Box>
   );
 }
