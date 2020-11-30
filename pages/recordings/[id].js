@@ -70,8 +70,8 @@ export default function Recording(props) {
           p={5}
           shadow="md"
           borderWidth="1px"
-          m="2% auto"
-          h="673px"
+          m="2% 1%"
+          h="666px"
           w={["100%", "40%"]}
           overflowY="scroll"
         >
