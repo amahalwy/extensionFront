@@ -34,7 +34,61 @@ export const getServerSideProps = async ({ params }) => {
 
 export default function Recording(props) {
   const [recording, setRecording] = React.useState(props.recording);
+  const [startTime, setStart] = React.useState(
+    recording.events[0].startTimestamp
+  );
   console.log(recording);
+
+  const showColor = (event) => {
+    switch (event.level) {
+      case "log":
+        return "black";
+      case "warn":
+        return "rgb(224, 172, 0)";
+      case "error":
+        return "rgb(255, 0, 0)";
+      default:
+        break;
+    }
+  };
+
+  const showBottom = (event) => {
+    if (event.fetchData) {
+      return (
+        <Box>
+          <Box>
+            <span>
+              HTTP Method:{" "}
+              <Text display="inline" fontWeight="bold">
+                {event.fetchData.method}
+              </Text>
+            </span>
+          </Box>
+          <Box>
+            <span>
+              Request to:{" "}
+              <Text display="inline" textDecor="underline">
+                {event.fetchData.url}
+              </Text>
+            </span>
+          </Box>
+        </Box>
+      );
+    } else {
+      return (
+        <Box>
+          <Box>
+            <span>
+              Response:{" "}
+              <Text display="inline" fontWeight="bold">
+                {event.args[0]}
+              </Text>
+            </span>
+          </Box>
+        </Box>
+      );
+    }
+  };
 
   return (
     <Box h="100%">
@@ -76,20 +130,61 @@ export default function Recording(props) {
           overflowY="scroll"
         >
           <Heading mb="2%">Timeline</Heading>
+          {recording.events.length > 14 ? (
+            <Text
+              ml="10px"
+              mb="6px"
+              fontStyle="italic"
+              fontSize="18px"
+              display="inline-block"
+            >
+              (scrollable)
+            </Text>
+          ) : (
+            ""
+          )}
           <Accordion allowToggle>
             {recording.events.map((ev) => {
               return (
                 <AccordionItem>
                   <AccordionButton>
                     <Box flex="1" textAlign="left">
-                      Message: <i>{ev.level}</i>
+                      Message:{" "}
+                      {ev.fetchData ? (
+                        <Text
+                          color="rgb(21, 136, 21)"
+                          fontStyle="italic"
+                          display="inline-block"
+                        >
+                          sucess
+                        </Text>
+                      ) : (
+                        <Text
+                          color={showColor(ev)}
+                          display="inline-block"
+                          fontStyle="italic"
+                        >
+                          {ev.level}
+                        </Text>
+                      )}
                     </Box>
-                    <Box textAlign="right">{ev.time}</Box>
+                    <Box>
+                      {ev.fetchData &&
+                      ev.fetchData.url.includes("authenticate") ? (
+                        <Text textAlign="right" fontStyle="italic">
+                          Initiated
+                        </Text>
+                      ) : ev.level === "warn" || ev.level === "error" ? (
+                        <Text>
+                          {((ev.time - startTime) / 1000).toFixed(2)} s
+                        </Text>
+                      ) : (
+                        ""
+                      )}
+                    </Box>
                     <AccordionIcon />
                   </AccordionButton>
-                  <AccordionPanel pb={4}>
-                    Details of each event line
-                  </AccordionPanel>
+                  <AccordionPanel pb={4}>{showBottom(ev)}</AccordionPanel>
                 </AccordionItem>
               );
             })}
