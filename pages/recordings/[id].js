@@ -37,6 +37,9 @@ export default function Recording(props) {
   const [startTime, setStart] = React.useState(
     recording.events[0].startTimestamp
   );
+  const [playing, setPlaying] = React.useState(false);
+
+  const playerRef = React.createRef();
   console.log(recording);
 
   const showColor = (event) => {
@@ -49,44 +52,6 @@ export default function Recording(props) {
         return "rgb(255, 0, 0)";
       default:
         break;
-    }
-  };
-
-  const showBottom = (event) => {
-    if (event.fetchData) {
-      return (
-        <Box>
-          <Box>
-            <span>
-              HTTP Method:{" "}
-              <Text display="inline" fontWeight="bold">
-                {event.fetchData.method}
-              </Text>
-            </span>
-          </Box>
-          <Box>
-            <span>
-              Request to:{" "}
-              <Text display="inline" textDecor="underline">
-                {event.fetchData.url}
-              </Text>
-            </span>
-          </Box>
-        </Box>
-      );
-    } else {
-      return (
-        <Box>
-          <Box>
-            <span>
-              Response:{" "}
-              <Text display="inline" fontWeight="bold">
-                {event.args[0]}
-              </Text>
-            </span>
-          </Box>
-        </Box>
-      );
     }
   };
 
@@ -112,10 +77,14 @@ export default function Recording(props) {
           h="100%"
         >
           <ReactPlayer
-            url={recording.screenUrl}
+            ref={playerRef}
+            playing={playing}
+            playsinline={true}
             controls={true}
+            url={recording.screenUrl}
             width="100%"
             height="100%"
+            onSeek={() => setPlaying(false)}
           />
         </Box>
 
@@ -143,52 +112,99 @@ export default function Recording(props) {
           ) : (
             ""
           )}
-          <Accordion allowToggle>
+          <Box>
             {recording.events.map((ev) => {
               return (
-                <AccordionItem>
-                  <AccordionButton>
+                <Box
+                  bg="white"
+                  p={5}
+                  shadow="md"
+                  borderWidth="1px"
+                  m="1%"
+                  cursor="pointer"
+                  onClick={() => {
+                    playerRef.current.seekTo(
+                      ((ev.time - startTime) / 1000).toFixed(2),
+                      "seconds"
+                    );
+                  }}
+                >
+                  <Box>
                     <Box flex="1" textAlign="left">
-                      Message:{" "}
-                      {ev.fetchData ? (
-                        <Text
-                          color="rgb(21, 136, 21)"
-                          fontStyle="italic"
-                          display="inline-block"
-                        >
-                          sucess
-                        </Text>
-                      ) : (
-                        <Text
-                          color={showColor(ev)}
-                          display="inline-block"
-                          fontStyle="italic"
-                        >
-                          {ev.level}
-                        </Text>
-                      )}
+                      <Flex justifyContent="space-between">
+                        {ev.fetchData ? (
+                          <span>
+                            HTTP Request:{" "}
+                            <Text
+                              color="rgb(255, 0, 0)"
+                              display="inline-block"
+                              fontStyle="italic"
+                            >
+                              {ev.fetchData.method}
+                            </Text>
+                          </span>
+                        ) : (
+                          <span>
+                            Server response:{" "}
+                            <Text
+                              color="rgb(255, 0, 0)"
+                              display="inline-block"
+                              fontStyle="italic"
+                            >
+                              {ev.level}
+                            </Text>
+                          </span>
+                        )}
+                        {ev.fetchData &&
+                        ev.fetchData.url.includes("authenticate") ? (
+                          <Text
+                            textAlign="right"
+                            display="inline-block"
+                            fontStyle="italic"
+                          >
+                            Initiated
+                          </Text>
+                        ) : (
+                          <Text
+                            textAlign="right"
+                            display="inline-block"
+                            fontStyle="italic"
+                          >
+                            +{((ev.time - startTime) / 1000).toFixed(2)} s
+                          </Text>
+                        )}
+                      </Flex>
                     </Box>
-                    <Box>
-                      {ev.fetchData &&
-                      ev.fetchData.url.includes("authenticate") ? (
-                        <Text textAlign="right" fontStyle="italic">
-                          Initiated
-                        </Text>
-                      ) : ev.level === "warn" || ev.level === "error" ? (
-                        <Text>
-                          {((ev.time - startTime) / 1000).toFixed(2)} s
-                        </Text>
-                      ) : (
-                        ""
-                      )}
-                    </Box>
-                    <AccordionIcon />
-                  </AccordionButton>
-                  <AccordionPanel pb={4}>{showBottom(ev)}</AccordionPanel>
-                </AccordionItem>
+                  </Box>
+                  <Box pb={4}>
+                    {ev.fetchData ? (
+                      <Box>
+                        <Box>
+                          <span>
+                            Request to:{" "}
+                            <Text display="inline" textDecor="underline">
+                              {ev.fetchData.url}
+                            </Text>
+                          </span>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Box>
+                        <Box>
+                          <span>
+                            Response:{" "}
+                            <Text display="inline" fontWeight="bold">
+                              {ev.args[0]}
+                            </Text>
+                          </span>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
               );
             })}
-          </Accordion>
+          </Box>
         </Box>
       </Stack>
     </Box>
