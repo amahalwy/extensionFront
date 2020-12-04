@@ -42,19 +42,6 @@ export default function Recording(props) {
   const playerRef = React.createRef();
   console.log(recording);
 
-  const showColor = (event) => {
-    switch (event.level) {
-      case "log":
-        return "black";
-      case "warn":
-        return "rgb(224, 172, 0)";
-      case "error":
-        return "rgb(255, 0, 0)";
-      default:
-        break;
-    }
-  };
-
   return (
     <Box h="100%">
       <Box bg="white" p={5} shadow="md" borderWidth="1px" m="1%">
@@ -113,7 +100,7 @@ export default function Recording(props) {
             ""
           )}
           <Box>
-            {recording.events.map((ev) => {
+            {recording.events.map((ev, i) => {
               return (
                 <Box
                   bg="white"
@@ -122,6 +109,7 @@ export default function Recording(props) {
                   borderWidth="1px"
                   m="1%"
                   cursor="pointer"
+                  _hover={{ bg: "rgb(230, 230, 230)" }}
                   onClick={() => {
                     playerRef.current.seekTo(
                       ((ev.time - startTime) / 1000).toFixed(2),
@@ -130,76 +118,111 @@ export default function Recording(props) {
                   }}
                 >
                   <Box>
-                    <Box flex="1" textAlign="left">
-                      <Flex justifyContent="space-between">
-                        {ev.fetchData ? (
-                          <span>
-                            HTTP Request:{" "}
-                            <Text
-                              color="rgb(255, 0, 0)"
-                              display="inline-block"
-                              fontStyle="italic"
-                            >
-                              {ev.fetchData.method}
-                            </Text>
-                          </span>
-                        ) : (
-                          <span>
-                            Server response:{" "}
-                            <Text
-                              color="rgb(255, 0, 0)"
-                              display="inline-block"
-                              fontStyle="italic"
-                            >
-                              {ev.level}
-                            </Text>
-                          </span>
-                        )}
-                        {ev.fetchData &&
-                        ev.fetchData.url.includes("authenticate") ? (
+                    <Flex justifyContent="space-between">
+                      {ev.fetchData ? (
+                        <Box>
+                          <Text display="inline">HTTP Request: </Text>
                           <Text
-                            textAlign="right"
+                            color="rgb(255, 0, 0)"
                             display="inline-block"
                             fontStyle="italic"
                           >
-                            Initiated
+                            {ev.fetchData.method}
                           </Text>
-                        ) : (
+                        </Box>
+                      ) : (
+                        <Box>
+                          <Text display="inline">Server response: </Text>
                           <Text
-                            textAlign="right"
+                            color="rgb(255, 0, 0)"
                             display="inline-block"
                             fontStyle="italic"
                           >
-                            +{((ev.time - startTime) / 1000).toFixed(2)} s
+                            {ev.level}
                           </Text>
-                        )}
-                      </Flex>
-                    </Box>
+                        </Box>
+                      )}
+                      {ev.fetchData &&
+                      ev.fetchData.url.includes("authenticate") ? (
+                        <Text
+                          textAlign="right"
+                          display="inline-block"
+                          fontStyle="italic"
+                        >
+                          Initiated
+                        </Text>
+                      ) : (
+                        <Text
+                          textAlign="right"
+                          display="inline-block"
+                          fontStyle="italic"
+                        >
+                          +{((ev.time - startTime) / 1000).toFixed(2)} s
+                        </Text>
+                      )}
+                    </Flex>
                   </Box>
-                  <Box pb={4}>
+                  <Box>
                     {ev.fetchData ? (
                       <Box>
-                        <Box>
-                          <span>
-                            Request to:{" "}
-                            <Text display="inline" textDecor="underline">
-                              {ev.fetchData.url}
-                            </Text>
-                          </span>
-                        </Box>
+                        <Text display="inline" fontWeight="bold">
+                          Request to:{" "}
+                        </Text>
+                        <Text display="inline" textDecor="underline">
+                          {ev.fetchData.url}
+                        </Text>
                       </Box>
                     ) : (
                       <Box>
-                        <Box>
-                          <span>
-                            Response:{" "}
-                            <Text display="inline" fontWeight="bold">
-                              {ev.args[0]}
-                            </Text>
-                          </span>
-                        </Box>
+                        <Text display="inline" fontWeight="bold">
+                          Response:{" "}
+                        </Text>
+                        <Text display="inline">{ev.args[0]}</Text>
                       </Box>
                     )}
+                  </Box>
+                  <Box pb={4}>
+                    {ev.fetchData &&
+                    ev.args[1] &&
+                    ev.args[1].body &&
+                    (JSON.parse(ev.args[1].body).platform ||
+                      JSON.parse(ev.args[1].body).code_a) ? (
+                      <Box mt="6px">
+                        <Box>Body: </Box>
+                        {Object.keys(JSON.parse(ev.args[1].body)).map((key) => {
+                          if (
+                            typeof JSON.parse(ev.args[1].body)[key] !== "object"
+                          ) {
+                            return (
+                              <Box ml="10px">
+                                <Text display="inline" fontWeight="bold">
+                                  {key}:{" "}
+                                </Text>
+                                <Text display="inline">
+                                  {JSON.parse(ev.args[1].body)[key]}
+                                </Text>
+                              </Box>
+                            );
+                          }
+                          if (
+                            typeof JSON.parse(ev.args[1].body)[key] === "object"
+                          ) {
+                            for (var k in JSON.parse(ev.args[1].body)[key]) {
+                              return (
+                                <Box ml="10px">
+                                  <Text display="inline" fontWeight="bold">
+                                    {k}:{" "}
+                                  </Text>
+                                  <Text display="inline">
+                                    {JSON.parse(ev.args[1].body)[key][k]}
+                                  </Text>
+                                </Box>
+                              );
+                            }
+                          }
+                        })}
+                      </Box>
+                    ) : null}
                   </Box>
                 </Box>
               );
